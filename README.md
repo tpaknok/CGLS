@@ -13,6 +13,8 @@ If the resulting variance-covariance matrix is not positive definite, nearPD fro
 
 Please make sure both the species compositional matrix and phylogenetic matrix have identical species name (e.g., space denoted as " ", not "_" or ".").
 
-"get_comm_pair_r" will return a variance-covariance matrix at the community level, which can be used in gls (from nlme)
+"get_comm_pair_r" will return a variance-covariance matrix at the community level, which can be used in gls (from nlme).
 
-Other functions are used for the simulations / empirical analyses.
+likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology & Evolution). Similar with PGLS, the function optimizes the phylogenetic covariance matrix by minimizing log-likelihood.
+
+Other functions are used for the simulations / empirical analyses and producing figures
