@@ -15,6 +15,6 @@ Please make sure both the species compositional matrix and phylogenetic matrix h
 
 "get_comm_pair_r" will return a variance-covariance matrix at the community level, which can be used in gls (from nlme).
 
-likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology & Evolution). Similar with PGLS, the function optimizes the phylogenetic covariance matrix by minimizing log-likelihood.
+likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology & Evolution). Similar with PGLS, the function optimizes the phylogenetic covariance matrix by minimizing log-likelihood. By default the lambda value is restricted to 0-1.
 
 Other functions are used for the simulations / empirical analyses and producing figures
