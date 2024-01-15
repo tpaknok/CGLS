@@ -1,0 +1,11 @@
+likelihood.lambda<-function(lambda,y,X,C){
+  V<-diag(diag(C))
+  C<-C-V
+  n<-nrow(C)
+  C.lambda<-(V+lambda*C)
+  beta<-solve(t(X)%*%solve(C.lambda)%*%X)%*%(t(X)%*%solve(C.lambda)%*%y)
+  sig2e<-as.double((1/n)*(t(y-X%*%beta)%*%solve(C.lambda)%*%(y-X%*%beta)))
+  logL<--(1/2)*t(y-X%*%beta)%*%solve(sig2e*C.lambda)%*%(y-X%*%beta)-(1/2)*
+    determinant(sig2e*C.lambda,logarithm=TRUE)$modulus-(n/2)*log(2*pi)
+  return(-logL) 
+}
