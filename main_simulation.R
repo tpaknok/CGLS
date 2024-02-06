@@ -36,11 +36,10 @@ colnames(V_sp) <- rownames(V_sp) <- gsub("_"," ",rownames(V_sp))
 ###
 library(phytools)
 library(Matrix)
-source("get_comm_pair_r_3.R") #best version. reduced computational time from 16s to 0.3s
+source("get_comm_pair_r.R") #best version. reduced computational time from 16s to 0.3s
 source("likelihood.lambda.R")
-source("likelihood.lambda2.R")
 source("likelihood.lambda.INLA.R")
-source("sim_CGLS3.R")
+source("sim_CGLS.R")
 
 set.seed(1000)
 
