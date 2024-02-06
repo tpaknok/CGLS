@@ -1,22 +1,16 @@
-likelihood.lambda2<-function(lambda,formula,y,x,C){
-  require(spaMM)
-  lambda <- round(lambda,3)
-  V<-diag(diag(C))
-  C<-C-V
-  n<-nrow(C)
-  C.lambda<-(V+lambda*C)
+likelihood.lambda<-function(lambda,y,X,V,comm){
+  message(lambda)
+  V_lambda <- V*lambda
+  diag(V_lambda) <- diag(V)
   
-  sim_data <- data.frame(y=y,x=x,comm=paste0("comm",1:nrow(comm)))
-  rownames(C.lambda) <- colnames(C.lambda) <- paste0("comm",1:nrow(comm))
-
-  m2_spamm <- fitme(formula,corrMatrix=C.lambda,
-                    data=sim_data,method = "REML",
-                    #init=list(lambda=NaN,phi=NaN),
-                    control.HLfit=list(max.iter=10000))
-  #logL <- logLik(m2_spamm)
-  #cat(lambda,logL,"\n")
-  phi <- m2_spamm$phi
+  C.lambda<- get_comm_pair_r_3(comm,V_lambda)
+  n <- ncol(C.lambda)
   
-  #return(-logL) 
-  return(phi)
+  beta<-solve(t(X)%*%solve(C.lambda)%*%X)%*%(t(X)%*%solve(C.lambda)%*%y)
+  sig2e<-as.double((1/n)*(t(y-X%*%beta)%*%solve(C.lambda)%*%(y-X%*%beta)))
+  logL<--(1/2)*t(y-X%*%beta)%*%solve(sig2e*C.lambda)%*%(y-X%*%beta)-(1/2)*
+    determinant(sig2e*C.lambda,logarithm=TRUE)$modulus-(n/2)*log(2*pi)
+  
+  AIC <- 2*(ncol(as.matrix(X))+2) - 2*logL
+  return(AIC) 
 }
