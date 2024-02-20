@@ -52,20 +52,23 @@ f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_
 
 sim_results_sr_corE0.5 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0.5,true_model=T,optim_model=x,INLA_formula = f))
 sim_results_sr_corE0.5<- data.frame(do.call(rbind,sim_results_sr_corE0.5),data="sr_corE0.5")
-sim_results_sr_corE <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=1,true_model=F,optim_model=x,INLA_formula = f))
+sim_results_sr_corE <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=1,true_model=T,optim_model=x,INLA_formula = f))
 sim_results_sr_corE <- data.frame(do.call(rbind,sim_results_sr_corE),data="sr_corError")
-sim_results_sr_nocorE <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0,true_model=F,optim_model=x,INLA_formula = f))
+sim_results_sr_nocorE <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0,true_model=T,optim_model=x,INLA_formula = f))
 sim_results_sr_nocorE <- data.frame(do.call(rbind,sim_results_sr_nocorE),data="sr_nocorError")
 
-lapply(sim_results_sr_corE, function(x) sum(x<0.05)/n)[1:7]
-lapply(sim_results_sr_corE0.5, function(x) sum(x<0.05)/n)[1:7]
-lapply(sim_results_sr_nocorE, function(x) sum(x<0.05)/n)[1:7]
+lapply(sim_results_sr_corE, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_corE0.5, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_nocorE, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_corE, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_sr_corE0.5, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_sr_nocorE, function(x) range(x,na.rm=T))[8:14]
 
 ##################
 b1 <- 0.5
 set.seed(1000)
 n <- 500
-optim_n <- 0
+optim_n <- 100
 optim_seq <- sample(c(rep(TRUE, optim_n), rep(FALSE, n-optim_n)), n ,replace = F)
 
 sim_results_sr_corE0.5_2 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0.5,true_model=T,optim_model=x,INLA_formula = f))
@@ -75,11 +78,14 @@ sim_results_sr_corE_2 <- data.frame(do.call(rbind,sim_results_sr_corE_2),data="s
 sim_results_sr_nocorE_2 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0,true_model=T,optim_model=x,INLA_formula = f))
 sim_results_sr_nocorE_2 <- data.frame(do.call(rbind,sim_results_sr_nocorE_2),data="sr_nocorError")
 
-lapply(sim_results_sr_corE_2, function(x) sum(x<0.05)/n)[1:7]
-lapply(sim_results_sr_corE0.5_2, function(x) sum(x<0.05)/n)[1:7]
-lapply(sim_results_sr_nocorE_2, function(x) sum(x<0.05)/n)[1:7]
+lapply(sim_results_sr_corE_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_corE0.5_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_nocorE_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_sr_corE_2, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_sr_corE0.5_2, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_sr_nocorE_2, function(x) range(x,na.rm=T))[8:14]
 ###################
-b1 <- 0.5
+b1 <- 0
 n <- 500
 optim_n <- 100
 optim_seq <- sample(c(rep(TRUE, optim_n), rep(FALSE, n-optim_n)), n ,replace = F)
@@ -98,7 +104,41 @@ sim_results_slope_sr_nocorE <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0
                                                                      INLA_formula = f))
 sim_results_slope_sr_nocorE <- data.frame(do.call(rbind,sim_results_slope_sr_nocorE),data="phy_cor_nocorError")
 
+lapply(sim_results_slope_sr_corE, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_corE0.5, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_nocorE, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_corE, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_slope_sr_corE0.5, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_slope_sr_nocorE, function(x) range(x,na.rm=T))[8:14]
 
+###################
+b1 <- 0.5
+n <- 500
+optim_n <- 100
+optim_seq <- sample(c(rep(TRUE, optim_n), rep(FALSE, n-optim_n)), n ,replace = F)
+
+set.seed(1000)
+
+#f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)+f(comm2,x,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)
+f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)+f(comm2,x,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)
+sim_results_slope_sr_corE0.5_2 <-lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="phy_cor",signals_intercept=T,signals_slope=T,lambda_true=0.5,true_model=T,optim_model=x,
+                                                                     INLA_formula = f))
+sim_results_slope_sr_corE0.5_2<- data.frame(do.call(rbind,sim_results_slope_sr_corE0.5_2),data="phy_cor_corE0.5")
+sim_results_slope_sr_corE_2 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="phy_cor",signals_intercept=T,signals_slope=T,lambda_true=1,true_model=T,optim_model=x,
+                                                                   INLA_formula = f))
+sim_results_slope_sr_corE_2 <- data.frame(do.call(rbind,sim_results_slope_sr_corE_2),data="phy_cor_corError")
+sim_results_slope_sr_nocorE_2 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="phy_cor",signals_intercept=T,signals_slope=T,lambda_true=0,true_model=T,optim_model=x,
+                                                                     INLA_formula = f))
+sim_results_slope_sr_nocorE_2 <- data.frame(do.call(rbind,sim_results_slope_sr_nocorE_2),data="phy_cor_nocorError")
+
+lapply(sim_results_slope_sr_corE_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_corE0.5_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_nocorE_2, function(x) sum(x<0.05,na.rm=T)/length(x[!is.na(x)]))[1:7]
+lapply(sim_results_slope_sr_corE_2, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_slope_sr_corE0.5_2, function(x) range(x,na.rm=T))[8:14]
+lapply(sim_results_slope_sr_nocorE_2, function(x) range(x,na.rm=T))[8:14]
+
+#####
 ####################
 lapply(sim_results_cor[1:5],function(x) sum(x < 0.05))
 lapply(sim_results_no_cor[1:5],function(x) sum(x < 0.05))
@@ -125,52 +165,75 @@ t.test(abs(effect_lm),abs(effect_gls_optim),paired=T)
 
 ### empirical
 library(tidyverse)
+library(nlme)
+library(phylosignal)
 cor(data[,c(22:29)])
 soil <- data[,c(22:29)]
 colnames(soil) <- word(colnames(soil),4,sep="_")
+C <- get_comm_pair_r_3(comm,V_sp)
 
 library(AICcmodavg)
+f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)
 
-soil_empiricial <- function(soil_data,X,C,names,soil_properties) {
+soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
+  print(soil_properties)
   y <- soil_data
-  df <- data.frame(y=y,X=X)
-  df$comm <- 1:nrow(df)
-  m <- gls(y~X,data=df)
+  df <- data.frame(y=y,x=x)
+  df$comm <- df$comm2 <- 1:nrow(df)
+  m <- gls(y~scale(x),data=df)
   summary(m)
   m_sig <- summary(m)$tTable[2,4]
-  
   #m2 <- gls(y~log(NumSp),data=data,correlation=corSymm(C[lower.tri(C)], fixed = T))
   #summary(m2)
   init_lambda <- lambdaTest(df$y,C)$Lambda
   
-  ML.opt<-optim(init_lambda,likelihood.lambda2,
-                formula= y~X+corrMatrix(1|comm),
-                y=df$y,X=scale(df$X),C=C,method="L-BFGS-B",
-                lower=0.0,upper=1.0,control=list(factr=1e14))
-  V<-diag(diag(C))
-  C_temp<-C-V
-  n<-nrow(C_temp)
-  lambda<-ML.opt$par
-  logL<--ML.opt$value
-  C.lambda<-(V+lambda*C_temp) 
+  ML.opt<-optim(runif(1),likelihood.lambda.INLA,
+                formula= f,
+                data=df,V=V_sp,comm=comm,method="L-BFGS-B",
+                lower=0.0,upper=1.0,control=list(factr=1e7,pgtol=1e-9))
+
+  lambda_INLA<-ML.opt$par
+  wAIC <- ML.opt$value
+  V_INLA <- V*lambda_INLA
+  diag(V_INLA) <- diag(V)
+  C.lambda.INLA<- get_comm_pair_r_3(comm,V_INLA) 
   
-  m2_spamm_optim <- fitme(#y~scale(X)+corrMatrix(1|comm)+corrMatrix(0+scale(X)|comm),
-                          y~scale(X)+corrMatrix(1|comm),
-                          corrMatrix=C.lambda,
-                          data=df, method="REML",
-                          init=list(lambda=NaN,phi=NaN),
-                          control.HLfit=list(max.iter=100000))
+  #m2_spamm_optim <- fitme(#y~scale(X)+corrMatrix(1|comm)+corrMatrix(0+scale(X)|comm),
+                         # y~scale(X)+corrMatrix(1|comm),
+                         # corrMatrix=C.lambda,
+                         # data=df, method="REML",
+                         # init=list(lambda=NaN,phi=NaN),
+                         # control.HLfit=list(max.iter=100000))
   #m2_optim <- gls(y~log(X),correlation=corSymm(C.lambda[lower.tri(C.lambda)], fixed = T),data=df)
   #summary(m2_optim)
-  m2_optim_sig <- 2*pt(abs(fixef(m2_spamm_optim)/sqrt(diag(vcov( m2_spamm_optim)))),df.residual(m2_spamm_optim),lower.tail=F)[2]
-
+  #m2_optim_sig <- 2*pt(abs(fixef(m2_spamm_optim)/sqrt(diag(vcov( m2_spamm_optim)))),df.residual(m2_spamm_optim),lower.tail=F)[2]
+  newobs <- data.frame(y=NA,x=unique(x),comm=NA,comm2=NA)
+  INLA_df <- rbind(df,newobs)
+  
+  m2_INLA_LM <- inla(y~x,data=INLA_df,control.compute = list(dic=T,waic=T))
+  m2_INLA_LM <- inla.rerun(m2_INLA_LM)
+  wAIC_LM <- m2_INLA_LM$waic$waic
+  
+  prec.mat.INLA <- solve(C.lambda.INLA)
+  m2_INLA_optim <- inla(y~x+f(comm,model="generic0",Cmatrix=prec.mat.INLA,prior = "pc.prec",hyper= c(3*sd(residuals(m)),0.01)),data=INLA_df,control.predictor=list(compute=TRUE),control.compute = list(dic=T,waic=T),safe=T,control.inla = list(tolerance = 1e-10))
+  m2_INLA_optim <- inla.rerun(m2_INLA_optim) # https://groups.google.com/g/r-inla-discussion-group/c/qkoV9ZtA1Wo
+  m2_INLA_optim <- inla.rerun(m2_INLA_optim) # https://groups.google.com/g/r-inla-discussion-group/c/qkoV9ZtA1Wo
+  
+  summary(m2_INLA_optim)
+  m2_INLA_optim_predict <- m2_INLA_optim$summary.fitted.values[-1:-(nrow(df)),]
+  m2_INLA_optim_predict <- data.frame(newobs$x,m2_INLA_optim_predict[,c("mean","0.025quant","0.975quant")])
+  m2_INLA_optim_predict$sig <- ifelse(sign(m2_INLA_optim$summary.fixed)[2,3] == sign(m2_INLA_optim$summary.fixed)[2,5],-1,1)
+  
   library(ggeffects)
-  m_predict <- data.frame(ggeffect(m,terms="X"),sig=m_sig)
+  m_predict <- data.frame(ggeffect(m,terms="x"),sig=m_sig)
+
   m_predict <- m_predict[,c(1,2,4,5,7)]
   #m2_optim_predict <- data.frame(ggeffect(m2_spamm_optim,terms="X"),sig=m2_optim_sig)
-  m2_optim_predict <- as.data.frame(predict(m2_spamm_optim,newdata=data.frame(X=seq(min(df$X),max(df$X),length.out=10),comm=1),re.form=NA))
-  m2_optim_predict <- cbind(X=seq(min(df$X),max(df$X),length.out=10),m2_optim_predict,get_intervals(m2_spamm_optim,data.frame(X=seq(min(df$X),max(df$X),length.out=10),comm=1),re.form=NA,intervals="fixefVar"),sig= m2_optim_sig)
-  colnames(m2_optim_predict) <- colnames(m_predict)
+  #m2_optim_predict <- as.data.frame(predict(m2_spamm_optim,newdata=data.frame(X=seq(min(df$X),max(df$X),length.out=10),comm=1),re.form=NA))
+  #m2_optim_predict <- cbind(X=seq(min(df$X),max(df$X),length.out=10),m2_optim_predict,get_intervals(m2_spamm_optim,data.frame(X=seq(min(df$X),max(df$X),length.out=10),comm=1),re.form=NA,intervals="fixefVar"),sig= m2_optim_sig)
+  #colnames(m2_optim_predict) <- colnames(m_predict)
+  
+  colnames(m2_INLA_optim_predict) <- colnames(m_predict)
   #m_predict <- data.frame(predictSE(m,newdata=data.frame(X=1:16)))
   #m_predict$conf.low <- m_predict$fit-m_predict$se.fit*1.96
   #m_predict$conf.high <- m_predict$fit+m_predict$se.fit*1.96
@@ -181,14 +244,14 @@ soil_empiricial <- function(soil_data,X,C,names,soil_properties) {
   #m2_optim_predict$conf.high <- m2_optim_predict$fit+m2_optim_predict$se.fit*1.96
   #m2_optim_predict$sig <- m2_optim_sig
   
-  predict_df <- rbind(cbind(m_predict,model="OLS",soil=soil_properties,lambda=NA),
-                      #cbind(m2_predict,model="gls"),
-                      cbind(m2_optim_predict,model="Optimized CGLS",soil=soil_properties,lambda=lambda))
-                      
+  predict_df <- rbind(cbind(m_predict,model="OLS",soil=soil_properties,lambda=NA,hyper_Gaussian = NA, hyper_Comm = NA,wAIC = NA,wAIC_LM=NA),
+                      cbind(m2_INLA_optim_predict,model="Optimized INLA",soil=soil_properties,lambda=lambda_INLA,hyper_Gaussian=m2_INLA_optim$summary.hyperpar[1,1],hyper_Comm =m2_INLA_optim$summary.hyperpar[2,1],wAIC=wAIC,wAIC_LM = wAIC_LM))
+  
   return(predict_df)
 }
-df <- data.frame(X=log(data$NumSp))
-predict_df <- lapply(1:ncol(soil),function(x) soil_empiricial(soil_data=soil[,x],X=log(data$NumSp),C=C,soil_properties=colnames(soil)[x]))
+
+df <- data.frame(x=log(data$NumSp))
+predict_df <- lapply(1:ncol(soil),function(x) soil_empiricial(soil_data=soil[,x],x=log(data$NumSp),V=V_sp,soil_properties=colnames(soil)[x]))
 
 predict_df <- do.call(rbind,predict_df)
 predict_df$x <- exp(predict_df$x)
@@ -199,9 +262,15 @@ library(ggplot2)
 library(tidyverse)
 plot_data <- data %>% 
   select(starts_with("gm2_2017") | contains("NumSp")) %>%
+  #select(contains("2015.2017") | contains("NumSp")) %>%
   pivot_longer(!NumSp,names_to="soil")
 
 plot_data$soil <- word(plot_data$soil,4,sep="_")
+
+plot_data$soil <- fct_relevel(plot_data$soil,"Carbon","Nitrogen","Potassium","Calcium","Magnesium","CEC","pH","Phosphorus")
+predict_df$soil <- fct_relevel(predict_df$soil,"Carbon","Nitrogen","Potassium","Calcium","Magnesium","CEC","pH","Phosphorus")
+predict_df$ratio <- predict_df$hyper_Gaussian/predict_df$hyper_Comm
+predict_df$ratio <- (1/predict_df$hyper_Gaussian)/(1/predict_df$hyper_Comm)
 
 p <- ggplot(data=predict_df)+
   geom_jitter(data=plot_data,aes(y=value,x=NumSp),width=0.25)+
