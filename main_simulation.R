@@ -174,7 +174,7 @@ colnames(soil) <- word(colnames(soil),4,sep="_")
 C <- get_comm_pair_r_3(comm,V_sp)
 
 library(AICcmodavg)
-f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)
+f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,hyper=list(prec = prior1))
 
 soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
   print(soil_properties)
@@ -188,13 +188,23 @@ soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
   #summary(m2)
   init_lambda <- lambdaTest(df$y,C)$Lambda
   
-  ML.opt<-optim(runif(1),likelihood.lambda.INLA,
-                formula= f,
-                data=df,V=V_sp,comm=comm,method="L-BFGS-B",
-                lower=0.0,upper=1.0,control=list(factr=1e7,pgtol=1e-9))
-
-  lambda_INLA<-ML.opt$par
-  wAIC <- ML.opt$value
+  sdres <- sd(residuals(m))
+  param <- c(3*sdres,0.01)
+  prior1 <- list(prec=list(prior="pc.prec"),param=param)
+  
+  ML.opt2<-optim(init_lambda,
+                 likelihood.lambda.INLA,
+                 inla_formula= f,
+                 data=df,
+                 phyV=V_sp,
+                 comm=comm,
+                 prior = list(prior1 = prior1),
+                 control.compute = list(waic=T),
+                 method="L-BFGS-B",
+                 lower=0.0,upper=1.0,control=list(factr=1e14))
+  
+  lambda_INLA<-ML.opt2$par
+  wAIC <- ML.opt2$value
   V_INLA <- V*lambda_INLA
   diag(V_INLA) <- diag(V)
   C.lambda.INLA<- get_comm_pair_r_3(comm,V_INLA) 
