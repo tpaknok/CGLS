@@ -48,7 +48,8 @@ n <- 500
 optim_n <- 100
 optim_seq <- sample(c(rep(TRUE, optim_n), rep(FALSE, n-optim_n)), n ,replace = F)
 
-f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,prior = "pc.prec",hyper=hyper_param)
+#prior1 <- list(prior = "pc.prec")
+f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,hyper=list(prec = prior1))
 
 sim_results_sr_corE0.5 <- lapply(optim_seq,function(x) sim_CGLS(comm,V_sp,0,1,b1=b1,signals_X="sr",signals_intercept=T,signals_slope=F,lambda_true=0.5,true_model=T,optim_model=x,INLA_formula = f))
 sim_results_sr_corE0.5<- data.frame(do.call(rbind,sim_results_sr_corE0.5),data="sr_corE0.5")

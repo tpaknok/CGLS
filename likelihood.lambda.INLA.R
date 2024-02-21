@@ -15,7 +15,7 @@ likelihood.lambda.INLA<-function(inla_formula,data,phyV=NULL,comm=NULL,lambda,pr
     assign(names(prior[i]),unlist(unname(prior[i]),recursive=F))
     } 
     
-    if (length(prior[i] == 1)) {
+    if (length(prior[i]) == 1) {
       assign(names(prior[i]),unname(prior[i])[[1]])
     }
   }
@@ -46,7 +46,6 @@ likelihood.lambda.INLA<-function(inla_formula,data,phyV=NULL,comm=NULL,lambda,pr
   #summary(m_INLA_lambda)
 
   wAIC <- m_INLA_lambda$waic$waic
-  print(wAIC)
   return(wAIC)
 }
 
