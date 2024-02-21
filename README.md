@@ -18,3 +18,11 @@ Please make sure both the species compositional matrix and phylogenetic matrix h
 likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology & Evolution). Similar with PGLS, the function optimizes the phylogenetic covariance matrix by minimizing log-likelihood. By default the lambda value is restricted to 0-1.
 
 Other functions are used for the simulations / empirical analyses and producing figures
+
+# Known problems
+
+Might need to use inla.rerun to enhance model stability
+
+It is possible that communities are indeed independent sample even if there are species overlap. In those cases the optimization of lambda will produce unstable results. A fix is to 1) re-run optimization several times to see if results are largely stable and 2) compare wAIC between models with optimized lambda and with independence assumption. If the model with optimized lambda doesn't perform better, users can use the model assuming communities are independent.
+
+Note that even with the same phylogenetic matrix, INLA will give different results across runs. So re-running the model will give different slightly different results (if phylogeny is important). If phylogeny is unimportant, INLA will give very unstable results, as the wAIC of all lambda values are driven by random fluctutation across runs. 
