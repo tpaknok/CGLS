@@ -1,4 +1,4 @@
-# CPR - Communithy Phylogenetic Regression
+# Phylogenetic bayesian mixed models using INLA 
 # (Last update: 15/01/2024)
 
 While species are known to be non-independent due to shared evolutionary history, this is rarely considered in community-level analysees. Additionally, communities are not statisitcally indepedent if there are species overlap (which is often the case).
