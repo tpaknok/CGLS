@@ -19,6 +19,8 @@ likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology 
 
 Other functions are used for the simulations / empirical analyses and producing figures
 
+Note that we are using Bayesian GLMM rather than Frequentist GLMM to improve the speed. 
+
 # Known problems
 
 Might need to use inla.rerun to enhance model stability
