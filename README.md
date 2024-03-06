@@ -1,4 +1,4 @@
-# CPR - Communithy Phylogenetic Regression
+# Phylogenetic bayesian mixed models using INLA 
 # (Last update: 15/01/2024)
 
 While species are known to be non-independent due to shared evolutionary history, this is rarely considered in community-level analysees. Additionally, communities are not statisitcally indepedent if there are species overlap (which is often the case).
@@ -18,6 +18,8 @@ Please make sure both the species compositional matrix and phylogenetic matrix h
 likelihood_lambda.R were extracted from Revell et al. (2010, Methods in Ecology & Evolution). Similar with PGLS, the function optimizes the phylogenetic covariance matrix by minimizing log-likelihood. By default the lambda value is restricted to 0-1.
 
 Other functions are used for the simulations / empirical analyses and producing figures
+
+Note that we are using Bayesian GLMM rather than Frequentist GLMM to improve the speed. 
 
 # Known problems
 
