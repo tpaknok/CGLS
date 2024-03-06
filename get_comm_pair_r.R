@@ -5,7 +5,7 @@ get_comm_pair_r_3 <- function (comm,V,force.PD = T) {
     stop("Inconsistent species name between species covariance matrix and community data matrix")
   } 
   
-  comm <- comm[,match(colnames(comm),colnames(V_sp))] #rearrange
+  comm <- comm[,match(colnames(comm),colnames(V))] #rearrange
   product <- as.data.frame(kronecker(as.matrix(comm),as.matrix(comm)))
   row_op <- cbind(expand.grid(1:nrow(comm),1:nrow(comm)))
   

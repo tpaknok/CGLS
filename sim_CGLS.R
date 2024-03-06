@@ -16,7 +16,7 @@ sim_CGLS <- function(comm,V,ef_mean,sd,
   C_true <- get_comm_pair_r_3(comm,V_true) 
   
   if (signals_X == "sr") {
-    x <- log(rowSums(comm)) #species richness
+    x <- rowSums(comm) #species richness
   } 
   
   if (signals_X == "phy_cor") {

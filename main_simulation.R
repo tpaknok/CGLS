@@ -1,37 +1,25 @@
-comm <- read.csv("gnfurey-e120_soils-0beb647/Data/comm.csv")
-data <- read.csv("gnfurey-e120_soils-0beb647/SubmissionData/Dataset_S1.csv")
-sp_list <- read.csv("gnfurey-e120_soils-0beb647/Data/species_list.csv")
+library(tidyverse)
+library(phytools)
 
-comm <- comm[match(data$Plot,comm$Plot),12:29]
+comm <- read.csv("Data/Planting.csv")
+data <- read.csv("Data/EF.csv")
 
-names <- sp_list[match(colnames(comm),sp_list$Species5),"Species"] 
-colnames(comm)[[3]] <- "Amorpha canescens"
-colnames(comm)[[11]] <- "Monarda fistulosa"
-names[[3]] <- "Amorpha canescens"
-names[[11]] <- "Monarda fistulosa"
-names[[1]] <- "Achillea millefolium"
-names[[2]] <- "Agropyron smithii"
-names[[4]] <- "Andropogon gerardii"
-names[[7]] <- "Koeleria pyramidata"
-names[[11]] <- "Monarda fistulosa"
-names[[13]] <- "Dalea purpurea"
+####
+data <- data %>% arrange(factor(Plot,levels=comm$PLOT))
+excluded <- anti_join(comm, data, by = c("PLOT" = "Plot"))
+comm <- semi_join(comm, data, by = c("PLOT" = "Plot"))
 
-colnames(comm) <- names       
-comm <- comm[,order(colnames(comm))]
-library(rtrees)
-library(ape)
-#library(taxize)
-#taxonomy <- tax_name(names,c("genus"))
-#taxonomy <- taxonomy[,c(2,4,3)]
-#colnames(taxonomy)[[1]] <- "species" 
+comm_misc <- comm$PLOT
+comm <- comm[,-1]
+comm[is.na(comm)] <- 0
+comm <- comm[rowSums(comm) > 0,]
 
-plant_names <- sp_list_df(data.frame(species=names),"plant")
-tree <- get_tree(sp_list=plant_names,taxon="plant",scenario = "at_basal_node")
+tree <- read.tree("Data/MLtree.txt")
 plot(tree)
+tree <- keep.tip(tree,colnames(comm))
 V_sp <- vcv(tree)
-cor_V <- vcv(tree,corr=T)
+V_cor <- vcv(tree,corr=T)
 V_sp <- V_sp[order(rownames(V_sp)),order(colnames(V_sp))]
-colnames(V_sp) <- rownames(V_sp) <- gsub("_"," ",rownames(V_sp))
 
 ###
 library(phytools)
@@ -168,17 +156,17 @@ t.test(abs(effect_lm),abs(effect_gls_optim),paired=T)
 library(tidyverse)
 library(nlme)
 library(phylosignal)
-cor(data[,c(22:29)])
-soil <- data[,c(22:29)]
-colnames(soil) <- word(colnames(soil),4,sep="_")
+data$flwr_total <- log10(data$flwr_total+1)
+ef_name <- c("litter2012","ave.biomass","LAI","bug.rich","bugs","poll_total","flwr_total","Mass.loss.2month","Damage_effect","mean.N.change")
+ef <- data[,ef_name]
 C <- get_comm_pair_r_3(comm,V_sp)
 
 library(AICcmodavg)
 f <- y~x+f(comm,model="generic0",Cmatrix=P.lambda,hyper=list(prec = prior1))
 
-soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
-  print(soil_properties)
-  y <- soil_data
+ef_empiricial <- function(ef_data,x,V,names,ef_properties) {
+  print(ef_properties)
+  y <- ef_data
   df <- data.frame(y=y,x=x)
   df$comm <- df$comm2 <- 1:nrow(df)
   m <- gls(y~scale(x),data=df)
@@ -201,7 +189,7 @@ soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
                  prior = list(prior1 = prior1),
                  control.compute = list(waic=T),
                  method="L-BFGS-B",
-                 lower=0.0,upper=1.0,control=list(factr=1e14))
+                 lower=0.0,upper=1.0,control=list(factr=1e9))
   
   lambda_INLA<-ML.opt2$par
   wAIC <- ML.opt2$value
@@ -224,6 +212,7 @@ soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
   m2_INLA_LM <- inla(y~x,data=INLA_df,control.compute = list(dic=T,waic=T))
   m2_INLA_LM <- inla.rerun(m2_INLA_LM)
   wAIC_LM <- m2_INLA_LM$waic$waic
+  m2_INLA_LM_r2<- cor(m2_INLA_LM$summary.fitted.values[1:(nrow(df)),"mean"],df$y)^2
   
   prec.mat.INLA <- solve(C.lambda.INLA)
   m2_INLA_optim <- inla(y~x+f(comm,model="generic0",Cmatrix=prec.mat.INLA,prior = "pc.prec",hyper= c(3*sd(residuals(m)),0.01)),data=INLA_df,control.predictor=list(compute=TRUE),control.compute = list(dic=T,waic=T),safe=T,control.inla = list(tolerance = 1e-10))
@@ -234,6 +223,7 @@ soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
   m2_INLA_optim_predict <- m2_INLA_optim$summary.fitted.values[-1:-(nrow(df)),]
   m2_INLA_optim_predict <- data.frame(newobs$x,m2_INLA_optim_predict[,c("mean","0.025quant","0.975quant")])
   m2_INLA_optim_predict$sig <- ifelse(sign(m2_INLA_optim$summary.fixed)[2,3] == sign(m2_INLA_optim$summary.fixed)[2,5],-1,1)
+  m2_INLA_optim_r2 <- cor(m2_INLA_optim$summary.fitted.values[1:nrow(df),"mean"],df$y)^2
   
   library(ggeffects)
   m_predict <- data.frame(ggeffect(m,terms="x"),sig=m_sig)
@@ -255,41 +245,40 @@ soil_empiricial <- function(soil_data,x,V,names,soil_properties) {
   #m2_optim_predict$conf.high <- m2_optim_predict$fit+m2_optim_predict$se.fit*1.96
   #m2_optim_predict$sig <- m2_optim_sig
   
-  predict_df <- rbind(cbind(m_predict,model="OLS",soil=soil_properties,lambda=NA,hyper_Gaussian = NA, hyper_Comm = NA,wAIC = NA,wAIC_LM=NA),
-                      cbind(m2_INLA_optim_predict,model="Optimized INLA",soil=soil_properties,lambda=lambda_INLA,hyper_Gaussian=m2_INLA_optim$summary.hyperpar[1,1],hyper_Comm =m2_INLA_optim$summary.hyperpar[2,1],wAIC=wAIC,wAIC_LM = wAIC_LM))
+  predict_df <- rbind(cbind(m_predict,model="OLS",ef=ef_properties,lambda=NA,hyper_Gaussian = NA, hyper_Comm = NA,wAIC = NA,wAIC_LM=NA,r2=m2_INLA_LM_r2),
+                      cbind(m2_INLA_optim_predict,model="Optimized INLA",ef=ef_properties,lambda=lambda_INLA,hyper_Gaussian=m2_INLA_optim$summary.hyperpar[1,1],hyper_Comm =m2_INLA_optim$summary.hyperpar[2,1],wAIC=wAIC,wAIC_LM = wAIC_LM,r2=m2_INLA_optim_r2))
   
   return(predict_df)
 }
 
-df <- data.frame(x=log(data$NumSp))
-predict_df <- lapply(1:ncol(soil),function(x) soil_empiricial(soil_data=soil[,x],x=log(data$NumSp),V=V_sp,soil_properties=colnames(soil)[x]))
+df <- data.frame(x=data$Real.rich) #seems that ggeffect can only extract variables from global environments
+predict_df <- lapply(1:ncol(ef),function(x) ef_empiricial(ef_data=ef[,x],x=data$Real.rich,V=V_sp,ef_properties=ef_name[x]))
 
 predict_df <- do.call(rbind,predict_df)
-predict_df$x <- exp(predict_df$x)
+predict_df$x <- predict_df$x
 predict_df$sig_binary <- ifelse(predict_df$sig < 0.05,"Significant","Insignificant")
 lapply(1:ncol(comm),function(x) table(rowSums(comm[comm[,x]>0,])))
+
 ### plot
 library(ggplot2)
 library(tidyverse)
 plot_data <- data %>% 
-  select(starts_with("gm2_2017") | contains("NumSp")) %>%
+  select(any_of(ef_name)|"Real.rich") %>%
   #select(contains("2015.2017") | contains("NumSp")) %>%
-  pivot_longer(!NumSp,names_to="soil")
+  pivot_longer(!Real.rich,names_to="ef")
 
-plot_data$soil <- word(plot_data$soil,4,sep="_")
-
-plot_data$soil <- fct_relevel(plot_data$soil,"Carbon","Nitrogen","Potassium","Calcium","Magnesium","CEC","pH","Phosphorus")
-predict_df$soil <- fct_relevel(predict_df$soil,"Carbon","Nitrogen","Potassium","Calcium","Magnesium","CEC","pH","Phosphorus")
+plot_data$ef <- fct_relevel(plot_data$ef,"litter2012","ave.biomass","LAI","poll_total","flwr_total","Mass.loss.2month","Damage_effect","mean.N.change","bugs","bug.rich")
+predict_df$ef <- fct_relevel(predict_df$ef,"litter2012","ave.biomass","LAI","poll_total","flwr_total","Mass.loss.2month","Damage_effect","mean.N.change","bugs","bug.rich")
 predict_df$ratio <- predict_df$hyper_Gaussian/predict_df$hyper_Comm
 predict_df$ratio <- (1/predict_df$hyper_Gaussian)/(1/predict_df$hyper_Comm)
 
 p <- ggplot(data=predict_df)+
-  geom_jitter(data=plot_data,aes(y=value,x=NumSp),width=0.25)+
+  geom_jitter(data=plot_data,aes(y=value,x=Real.rich),width=0)+
   geom_line(aes(y=predicted,x=x,colour=model,linetype=sig_binary))+
   geom_ribbon(aes(y=predicted,x=x,fill=model,ymin=conf.low,ymax=conf.high),alpha=0.3,colour="transparent")+
-  facet_wrap(~soil,scales="free",nrow=2,ncol=4)+
+  facet_wrap(~ef,scales="free",nrow=5,ncol=2)+
   theme_classic()+
-  labs(x="Species richness",y="Soil properties",colour="Model",fill="Model",linetype="Significance")+
+  labs(x="Species richness",y="Ecosystem Function",colour="Model",fill="Model",linetype="Significance")+
   scale_linetype_manual(values=c(2,1))+
   scale_colour_manual(values=c("#000000","#E69F00"))+
   scale_fill_manual(values=c("#000000","#E69F00"))+
@@ -297,27 +286,4 @@ p <- ggplot(data=predict_df)+
 
 plot(p)
 
-ggsave("Figure/soil.tiff",height=8.4*1.5,width=16.8,units="cm",compression="lzw",dpi=600)
-
-vcv2phylo(C_orig)
-######### useless = assume no evolutinoary history
-C <- matrix(0,nrow=nrow(comm),ncol=nrow(comm))
-
-for (j in 1:nrow(comm)){
-  for (k in 1:nrow(comm)) {
-    comm1 <- comm[j,]
-    comm2 <- comm[k,]
-    
-    species <- specnumber(comm1)*specnumber(comm2)
-    overlap <- sum(comm1+comm2 ==2)
-    
-    cor <- overlap/sqrt(species)
-    
-    C[j,k] <- cor
-  }
-}
-
-C <- as.matrix(nearPD(C,corr=T,keepDiag=T)$mat)
-
-colnames(C) <- rownames(C) <- 1:nrow(comm)
-#C <- corSymm(C[lower.tri(C)], fixed = T)
+ggsave("Figure/ef.tiff",height=8.4*1.5,width=16.8,units="cm",compression="lzw",dpi=600)
